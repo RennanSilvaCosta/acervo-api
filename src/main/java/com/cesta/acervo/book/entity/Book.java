@@ -1,6 +1,5 @@
 package com.cesta.acervo.book.entity;
 
-import com.cesta.acervo.book.enums.IdentifyTypeEnum;
 import com.cesta.acervo.book.enums.StatusReading;
 import jakarta.persistence.*;
 import lombok.*;
@@ -53,5 +52,8 @@ public class Book {
 
     @Column(name = "BOOK_CREATE_DATE")
     private LocalDate createDate;
+
+    @Column(name = "BOOK_PAGE_COUNT")
+    private Integer pageCount;
 
 }
