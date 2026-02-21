@@ -9,7 +9,7 @@ import java.util.List;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @Getter
 @Setter
-public class GoogleBooksResponse {
+public class GoogleBookResponse {
     private List<VolumeItem> items;
 
     @Getter

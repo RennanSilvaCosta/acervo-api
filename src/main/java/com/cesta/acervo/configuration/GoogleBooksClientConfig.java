@@ -13,7 +13,7 @@ public class GoogleBooksClientConfig {
     @Value("${google.books.api-key}")
     private String apiKey;
 
-    @Bean
+    @Bean(name = "googleBooks")
     public WebClient googleBooksWebClient() {
         return WebClient.builder()
                 .baseUrl("https://www.googleapis.com/books/v1")
@@ -23,4 +23,10 @@ public class GoogleBooksClientConfig {
                 .build();
     }
 
+    @Bean(name = "openLibrary")
+    public WebClient openLibraryWebClient() {
+        return WebClient.builder()
+                .baseUrl("https://openlibrary.org/api")
+                .build();
+    }
 }

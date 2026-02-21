@@ -36,18 +36,18 @@ public class Book {
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<Publisher> publishers = new HashSet<>();
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "BOOK_COVER_ID")
     private Cover cover;
 
-    @Column(name = "BOOK_PUBLISH_DATE", nullable = false)
-    private LocalDate publishDate;
+    @Column(name = "BOOK_PUBLISH_YEAR", nullable = false)
+    private String publishYear;
 
     @Column(name = "BOOK_STATUS_READING")
     @Enumerated(EnumType.STRING)
     private StatusReading statusReading;
 
-    @Column(name = "BOOK_DESCRIPTION")
+    @Column(name = "BOOK_DESCRIPTION",length = 4000)
     private String description;
 
     @Column(name = "BOOK_CREATE_DATE")

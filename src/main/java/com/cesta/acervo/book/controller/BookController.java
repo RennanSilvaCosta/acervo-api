@@ -1,6 +1,5 @@
 package com.cesta.acervo.book.controller;
 
-import com.cesta.acervo.book.dto.BookResponseDto;
 import com.cesta.acervo.book.service.BookService;
 import org.hibernate.validator.constraints.ISBN;
 import org.springframework.validation.annotation.Validated;
@@ -21,7 +20,7 @@ public class BookController {
     }
 
     @PostMapping("/isbn/{isbn}")
-    public BookResponseDto createByIsbn(@PathVariable @ISBN String isbn) {
+    public Long getBook(@PathVariable @ISBN String isbn) {
         return bookService.createByIsbn(isbn);
     }
 
