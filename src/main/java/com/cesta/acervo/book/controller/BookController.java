@@ -20,7 +20,7 @@ public class BookController {
     }
 
     @PostMapping("/isbn/{isbn}")
-    public Long getBook(@PathVariable @ISBN String isbn) {
+    public Long createBookByIsbn(@PathVariable @ISBN String isbn) {
         return bookService.createByIsbn(isbn);
     }
 
