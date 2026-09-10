@@ -10,16 +10,10 @@ import java.util.Map;
 @Configuration
 public class GoogleBooksClientConfig {
 
-    @Value("${google.books.api-key}")
-    private String apiKey;
-
     @Bean(name = "googleBooks")
     public WebClient googleBooksWebClient() {
         return WebClient.builder()
                 .baseUrl("https://www.googleapis.com/books/v1")
-                .defaultUriVariables(
-                        Map.of("key", apiKey)
-                )
                 .build();
     }
 

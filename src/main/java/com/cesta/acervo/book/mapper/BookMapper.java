@@ -1,0 +1,157 @@
+package com.cesta.acervo.book.mapper;
+
+import com.cesta.acervo.book.entity.Author;
+import com.cesta.acervo.book.entity.Book;
+import com.cesta.acervo.book.entity.BookIdentification;
+import com.cesta.acervo.book.entity.Cover;
+import com.cesta.acervo.book.entity.Publisher;
+import com.cesta.acervo.book.enums.IdentifyTypeEnum;
+import com.cesta.acervo.googlebook.dto.GoogleBookResponse;
+import com.cesta.acervo.googlebook.dto.GoogleBookResponse.VolumeInfo;
+import com.cesta.acervo.googlebook.dto.GoogleBookResponse.VolumeItem;
+import com.cesta.acervo.openlibrary.dto.OpenLibraryBookResponse;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+@Component
+public class BookMapper {
+
+    public Book toEntity(GoogleBookResponse google, OpenLibraryBookResponse open, String isbn) {
+        VolumeItem googleItem = googleItem(google);
+        VolumeInfo googleBook = googleItem != null && googleItem.getVolumeInfo() != null
+                ? googleItem.getVolumeInfo()
+                : new VolumeInfo();
+        OpenLibraryBookResponse openBook = open != null ? open : new OpenLibraryBookResponse();
+
+        Book book = new Book();
+        book.setTitle(prefer(googleBook.getTitle(), openBook.getTitle()));
+        book.setDescription(prefer(googleBook.getDescription(), null));
+        book.setPageCount(prefer(googleBook.getPageCount(), openBook.getNumber_of_pages()));
+        book.setPublishYear(prefer(googleBook.getPublishedDate(), openBook.getPublish_date()));
+        book.setCover(toCover(openBook.getCover()));
+
+        List<String> authorNames = prefer(
+                googleBook.getAuthors(),
+                openBook.getAuthors() == null ? null : openBook.getAuthors().stream()
+                        .filter(Objects::nonNull)
+                        .map(OpenLibraryBookResponse.Author::getName)
+                        .toList()
+        );
+        if (authorNames != null) {
+            authorNames.stream()
+                    .filter(this::isPresent)
+                    .forEach(name -> {
+                        Author author = new Author();
+                        author.setName(name);
+                        author.setBook(book);
+                        book.getAuthors().add(author);
+                    });
+        }
+
+        List<String> publisherNames = prefer(
+                googleBook.getPublisher() == null ? null : List.of(googleBook.getPublisher()),
+                openBook.getPublishers() == null ? null : openBook.getPublishers().stream()
+                        .filter(Objects::nonNull)
+                        .map(OpenLibraryBookResponse.Publisher::getName)
+                        .toList()
+        );
+        if (publisherNames != null) {
+            publisherNames.stream()
+                    .filter(this::isPresent)
+                    .forEach(name -> {
+                        Publisher publisher = new Publisher();
+                        publisher.setName(name);
+                        publisher.setBook(book);
+                        book.getPublishers().add(publisher);
+                    });
+        }
+
+        addIdentification(book, isbn.length() >= 13 ? IdentifyTypeEnum.ISBN_13 : IdentifyTypeEnum.ISBN, isbn);
+
+        if (googleBook.getIndustryIdentifiers() != null) {
+            googleBook.getIndustryIdentifiers().forEach(item -> {
+                if (item == null) {
+                    return;
+                }
+                IdentifyTypeEnum type = "ISBN_10".equals(item.getType())
+                        ? IdentifyTypeEnum.ISBN
+                        : IdentifyTypeEnum.ISBN_13;
+                addIdentification(book, type, item.getIdentifier());
+            });
+        }
+
+        if (googleItem != null) {
+            addIdentification(book, IdentifyTypeEnum.GOOGLE_BOOK, googleItem.getId());
+        }
+
+        if (openBook.getIdentifiers() != null
+                && openBook.getIdentifiers().getOpenlibrary() != null
+                && !openBook.getIdentifiers().getOpenlibrary().isEmpty()) {
+            addIdentification(book, IdentifyTypeEnum.OPEN_LIBRARY, openBook.getIdentifiers().getOpenlibrary().getFirst());
+        }
+
+        return book;
+    }
+
+    private Cover toCover(OpenLibraryBookResponse.Cover openCover) {
+        if (openCover == null) {
+            return null;
+        }
+
+        Cover cover = new Cover();
+        cover.setUrlSmall(prefer(openCover.getSmall(), null));
+        cover.setUrlMedium(prefer(openCover.getMedium(), null));
+        cover.setUrlLarge(prefer(openCover.getLarge(), null));
+
+        if (cover.getUrlSmall() == null && cover.getUrlMedium() == null && cover.getUrlLarge() == null) {
+            return null;
+        }
+
+        return cover;
+    }
+
+    private VolumeItem googleItem(GoogleBookResponse google) {
+        if (google == null || google.getItems() == null || google.getItems().isEmpty()) {
+            return null;
+        }
+        return google.getItems().getFirst();
+    }
+
+    private void addIdentification(Book book, IdentifyTypeEnum type, String value) {
+        if (type == null || !isPresent(value)) {
+            return;
+        }
+
+        boolean alreadyPresent = book.getBookIdentifications().stream()
+                .anyMatch(existing -> existing.getIdentifyType() == type && value.equals(existing.getIdentify()));
+        if (alreadyPresent) {
+            return;
+        }
+
+        BookIdentification identification = new BookIdentification();
+        identification.setIdentifyType(type);
+        identification.setIdentify(value);
+        identification.setBook(book);
+        book.getBookIdentifications().add(identification);
+    }
+
+    private <T> T prefer(T googleValue, T openLibraryValue) {
+        return isPresent(googleValue) ? googleValue : (isPresent(openLibraryValue) ? openLibraryValue : null);
+    }
+
+    private boolean isPresent(Object value) {
+        if (value == null) {
+            return false;
+        }
+        if (value instanceof String text) {
+            return !text.isBlank();
+        }
+        if (value instanceof Collection<?> collection) {
+            return !collection.isEmpty();
+        }
+        return true;
+    }
+}
