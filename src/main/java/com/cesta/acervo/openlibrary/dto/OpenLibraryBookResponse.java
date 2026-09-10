@@ -17,6 +17,7 @@ public class OpenLibraryBookResponse {
     private Integer number_of_pages;
     private List<Author> authors;
     private Identifie identifiers;
+    private List<Publisher> publishers;
 
     @Getter
     @Setter
@@ -38,4 +39,11 @@ public class OpenLibraryBookResponse {
     public static class Identifie {
         private List<String> openlibrary;
     }
+
+    @Getter
+    @Setter
+    public static class Publisher {
+        private String name;
+    }
+
 }

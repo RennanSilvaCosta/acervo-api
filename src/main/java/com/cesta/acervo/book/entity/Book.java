@@ -40,7 +40,7 @@ public class Book {
     @JoinColumn(name = "BOOK_COVER_ID")
     private Cover cover;
 
-    @Column(name = "BOOK_PUBLISH_YEAR", nullable = false)
+    @Column(name = "BOOK_PUBLISH_YEAR")
     private String publishYear;
 
     @Column(name = "BOOK_STATUS_READING")
