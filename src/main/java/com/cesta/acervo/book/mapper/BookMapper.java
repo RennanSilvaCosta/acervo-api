@@ -14,7 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 public class BookMapper {
@@ -33,6 +35,16 @@ public class BookMapper {
         book.setPublishYear(prefer(googleBook.getPublishedDate(), openBook.getPublish_date()));
         book.setCover(toCover(openBook.getCover()));
 
+        Map<String, String> openLibraryAuthorUrls = openBook.getAuthors() == null
+                ? Map.of()
+                : openBook.getAuthors().stream()
+                .filter(author -> author != null && isPresent(author.getName()))
+                .collect(Collectors.toMap(
+                        author -> author.getName().trim().toLowerCase(),
+                        author -> author.getUrl() == null ? "" : author.getUrl(),
+                        (existing, ignored) -> existing
+                ));
+
         List<String> authorNames = prefer(
                 googleBook.getAuthors(),
                 openBook.getAuthors() == null ? null : openBook.getAuthors().stream()
@@ -45,8 +57,11 @@ public class BookMapper {
                     .filter(this::isPresent)
                     .forEach(name -> {
                         Author author = new Author();
-                        author.setName(name);
-                        author.setBook(book);
+                        author.setName(name.trim());
+                        String profileUrl = openLibraryAuthorUrls.get(name.trim().toLowerCase());
+                        if (isPresent(profileUrl)) {
+                            author.setProfileUrl(profileUrl);
+                        }
                         book.getAuthors().add(author);
                     });
         }
@@ -63,8 +78,7 @@ public class BookMapper {
                     .filter(this::isPresent)
                     .forEach(name -> {
                         Publisher publisher = new Publisher();
-                        publisher.setName(name);
-                        publisher.setBook(book);
+                        publisher.setName(name.trim());
                         book.getPublishers().add(publisher);
                     });
         }

@@ -1,5 +1,7 @@
 package com.cesta.acervo.book.service;
 
+import com.cesta.acervo.book.entity.Author;
+import com.cesta.acervo.book.entity.Publisher;
 import com.cesta.acervo.book.enums.IdentifyTypeEnum;
 import com.cesta.acervo.book.mapper.BookMapper;
 import com.cesta.acervo.book.repository.AuthorRepository;
@@ -14,7 +16,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -73,11 +77,42 @@ public class BookService {
             throw new IllegalStateException("Não foi possível obter dados do livro para o ISBN " + isbnNormalize);
         }
 
+        book.setAuthors(resolveAuthors(book.getAuthors()));
+        book.setPublishers(resolvePublishers(book.getPublishers()));
         var entity = this.bookRepository.saveAndFlush(book);
         this.bookIdentificationRepository.saveAllAndFlush(entity.getBookIdentifications());
-        this.authorRepository.saveAll(entity.getAuthors());
-        this.publisherRepository.saveAll(entity.getPublishers());
 
         return entity.getId();
+    }
+
+    private Set<Author> resolveAuthors(Set<Author> authors) {
+        if (authors == null || authors.isEmpty()) {
+            return authors;
+        }
+
+        Set<Author> resolved = new HashSet<>();
+        for (Author author : authors) {
+            Author persisted = this.authorRepository.findByNameIgnoreCase(author.getName())
+                    .orElseGet(() -> this.authorRepository.save(author));
+            if (persisted.getProfileUrl() == null && author.getProfileUrl() != null) {
+                persisted.setProfileUrl(author.getProfileUrl());
+            }
+            resolved.add(persisted);
+        }
+        return resolved;
+    }
+
+    private Set<Publisher> resolvePublishers(Set<Publisher> publishers) {
+        if (publishers == null || publishers.isEmpty()) {
+            return publishers;
+        }
+
+        Set<Publisher> resolved = new HashSet<>();
+        for (Publisher publisher : publishers) {
+            Publisher persisted = this.publisherRepository.findByNameIgnoreCase(publisher.getName())
+                    .orElseGet(() -> this.publisherRepository.save(publisher));
+            resolved.add(persisted);
+        }
+        return resolved;
     }
 }

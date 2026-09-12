@@ -29,11 +29,21 @@ public class Book {
     private Set<BookIdentification> bookIdentifications = new HashSet<>();
 
     @Singular
-    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "TB_BOOK_AUTHOR",
+            joinColumns = @JoinColumn(name = "BOOK_ID"),
+            inverseJoinColumns = @JoinColumn(name = "AUTHOR_ID")
+    )
     private Set<Author> authors = new HashSet<>();
 
     @Singular
-    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "TB_BOOK_PUBLISHER",
+            joinColumns = @JoinColumn(name = "BOOK_ID"),
+            inverseJoinColumns = @JoinColumn(name = "PUBLISHER_ID")
+    )
     private Set<Publisher> publishers = new HashSet<>();
 
     @OneToOne(cascade = CascadeType.ALL)
