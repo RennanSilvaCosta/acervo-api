@@ -1,5 +1,6 @@
 package com.cesta.acervo.book.mapper;
 
+import com.cesta.acervo.book.dto.BookResponseDto;
 import com.cesta.acervo.book.entity.Author;
 import com.cesta.acervo.book.entity.Book;
 import com.cesta.acervo.book.entity.BookIdentification;
@@ -16,6 +17,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -110,6 +113,19 @@ public class BookMapper {
         return book;
     }
 
+    public BookResponseDto toResponse(Book book) {
+        return new BookResponseDto(
+                book.getId(),
+                book.getTitle(),
+                book.getDescription(),
+                book.getPublishYear(),
+                book.getPageCount(),
+                names(book.getAuthors(), Author::getName),
+                names(book.getPublishers(), Publisher::getName),
+                coverUrl(book.getCover())
+        );
+    }
+
     private Cover toCover(OpenLibraryBookResponse.Cover openCover) {
         if (openCover == null) {
             return null;
@@ -154,6 +170,26 @@ public class BookMapper {
 
     private <T> T prefer(T googleValue, T openLibraryValue) {
         return isPresent(googleValue) ? googleValue : (isPresent(openLibraryValue) ? openLibraryValue : null);
+    }
+
+    private String coverUrl(Cover cover) {
+        if (cover == null) {
+            return null;
+        }
+        if (cover.getUrlMedium() != null) {
+            return cover.getUrlMedium();
+        }
+        if (cover.getUrlLarge() != null) {
+            return cover.getUrlLarge();
+        }
+        return cover.getUrlSmall();
+    }
+
+    private <T> List<String> names(Set<T> values, Function<T, String> name) {
+        if (values == null) {
+            return List.of();
+        }
+        return values.stream().map(name).toList();
     }
 
     private boolean isPresent(Object value) {
