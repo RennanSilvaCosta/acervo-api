@@ -3,7 +3,6 @@ package com.cesta.acervo.userbook.service;
 import com.cesta.acervo.book.entity.Book;
 import com.cesta.acervo.book.enums.StatusReading;
 import com.cesta.acervo.book.repository.BookRepository;
-import com.cesta.acervo.book.service.BookService;
 import com.cesta.acervo.user.entity.User;
 import com.cesta.acervo.user.service.UserService;
 import com.cesta.acervo.userbook.dto.UpdateUserBookRequest;
@@ -24,33 +23,28 @@ public class UserBookService {
 
     private final UserBookRepository userBookRepository;
     private final BookRepository bookRepository;
-    private final BookService bookService;
     private final UserService userService;
     private final UserBookMapper userBookMapper;
 
     public UserBookService(UserBookRepository userBookRepository,
                            BookRepository bookRepository,
-                           BookService bookService,
                            UserService userService,
                            UserBookMapper userBookMapper) {
         this.userBookRepository = userBookRepository;
         this.bookRepository = bookRepository;
-        this.bookService = bookService;
         this.userService = userService;
         this.userBookMapper = userBookMapper;
     }
 
     @Transactional
-    public UserBookResponse addByIsbn(Long userId, String isbn) {
+    public UserBookResponse add(Long userId, Long bookId) {
         User user = userService.getById(userId);
-        Long bookId = bookService.createByIsbn(isbn);
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado"));
 
         if (userBookRepository.existsByUserIdAndBookId(userId, bookId)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Este livro já está no acervo do usuário");
         }
-
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado"));
 
         UserBook userBook = UserBook.builder()
                 .user(user)

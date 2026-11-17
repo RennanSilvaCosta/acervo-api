@@ -4,7 +4,6 @@ import com.cesta.acervo.userbook.dto.UpdateUserBookRequest;
 import com.cesta.acervo.userbook.dto.UserBookResponse;
 import com.cesta.acervo.userbook.service.UserBookService;
 import jakarta.validation.Valid;
-import org.hibernate.validator.constraints.ISBN;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,10 +28,10 @@ public class UserBookController {
         this.userBookService = userBookService;
     }
 
-    @PostMapping("/isbn/{isbn}")
+    @PostMapping("/{bookId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserBookResponse addByIsbn(@PathVariable Long userId, @PathVariable @ISBN String isbn) {
-        return userBookService.addByIsbn(userId, isbn);
+    public UserBookResponse add(@PathVariable Long userId, @PathVariable Long bookId) {
+        return userBookService.add(userId, bookId);
     }
 
     @PatchMapping("/{bookId}")

@@ -1,5 +1,6 @@
 package com.cesta.acervo.book.service;
 
+import com.cesta.acervo.book.dto.BookResponseDto;
 import com.cesta.acervo.book.entity.Author;
 import com.cesta.acervo.book.entity.Publisher;
 import com.cesta.acervo.book.enums.IdentifyTypeEnum;
@@ -53,7 +54,7 @@ public class BookService {
     }
 
     @Transactional
-    public Long createByIsbn(String isbn) {
+    public BookResponseDto createByIsbn(String isbn) {
         var isbnNormalize = isbn.replaceAll("[^0-9]", "");
         var dbBook = this.bookRepository.findByIsbnCode(
                 isbnNormalize,
@@ -61,7 +62,7 @@ public class BookService {
         );
 
         if (dbBook.isPresent()) {
-            return dbBook.get().getId();
+            return bookMapper.toResponse(dbBook.get());
         }
 
         CompletableFuture<GoogleBookResponse> googleFuture = CompletableFuture
@@ -82,7 +83,7 @@ public class BookService {
         var entity = this.bookRepository.saveAndFlush(book);
         this.bookIdentificationRepository.saveAllAndFlush(entity.getBookIdentifications());
 
-        return entity.getId();
+        return bookMapper.toResponse(entity);
     }
 
     private Set<Author> resolveAuthors(Set<Author> authors) {
