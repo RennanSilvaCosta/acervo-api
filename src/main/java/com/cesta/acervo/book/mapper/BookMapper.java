@@ -7,6 +7,7 @@ import com.cesta.acervo.book.entity.BookIdentification;
 import com.cesta.acervo.book.entity.Cover;
 import com.cesta.acervo.book.entity.Publisher;
 import com.cesta.acervo.book.enums.IdentifyTypeEnum;
+import com.cesta.acervo.book.util.PublishYearNormalizer;
 import com.cesta.acervo.googlebook.dto.GoogleBookResponse;
 import com.cesta.acervo.googlebook.dto.GoogleBookResponse.VolumeInfo;
 import com.cesta.acervo.googlebook.dto.GoogleBookResponse.VolumeItem;
@@ -35,7 +36,11 @@ public class BookMapper {
         book.setTitle(prefer(googleBook.getTitle(), openBook.getTitle()));
         book.setDescription(prefer(googleBook.getDescription(), null));
         book.setPageCount(prefer(googleBook.getPageCount(), openBook.getNumber_of_pages()));
-        book.setPublishYear(prefer(googleBook.getPublishedDate(), openBook.getPublish_date()));
+        book.setPublishYear(prefer(
+                PublishYearNormalizer.normalize(googleBook.getPublishedDate()),
+                PublishYearNormalizer.normalize(openBook.getPublish_date())
+        ));
+        book.setLanguage(normalizeLanguage(googleBook.getLanguage()));
         book.setCover(toCover(openBook.getCover()));
 
         Map<String, String> openLibraryAuthorUrls = openBook.getAuthors() == null
@@ -93,9 +98,12 @@ public class BookMapper {
                 if (item == null) {
                     return;
                 }
-                IdentifyTypeEnum type = "ISBN_10".equals(item.getType())
-                        ? IdentifyTypeEnum.ISBN
-                        : IdentifyTypeEnum.ISBN_13;
+                // O Google tambem devolve identificadores do tipo "OTHER" (codigos internos), que nao sao ISBN
+                IdentifyTypeEnum type = switch (item.getType() == null ? "" : item.getType()) {
+                    case "ISBN_10" -> IdentifyTypeEnum.ISBN;
+                    case "ISBN_13" -> IdentifyTypeEnum.ISBN_13;
+                    default -> null;
+                };
                 addIdentification(book, type, item.getIdentifier());
             });
         }
@@ -118,7 +126,7 @@ public class BookMapper {
                 book.getId(),
                 book.getTitle(),
                 book.getDescription(),
-                book.getPublishYear(),
+                PublishYearNormalizer.normalize(book.getPublishYear()),
                 book.getPageCount(),
                 names(book.getAuthors(), Author::getName),
                 names(book.getPublishers(), Publisher::getName),
@@ -141,6 +149,10 @@ public class BookMapper {
         }
 
         return cover;
+    }
+
+    private String normalizeLanguage(String language) {
+        return isPresent(language) ? language.trim().toLowerCase() : null;
     }
 
     private VolumeItem googleItem(GoogleBookResponse google) {

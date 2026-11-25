@@ -1,11 +1,12 @@
 package com.cesta.acervo.userbook.service;
 
 import com.cesta.acervo.book.entity.Book;
-import com.cesta.acervo.book.enums.StatusReading;
 import com.cesta.acervo.book.repository.BookRepository;
 import com.cesta.acervo.user.entity.User;
 import com.cesta.acervo.user.service.UserService;
+import com.cesta.acervo.userbook.dto.AddUserBookRequest;
 import com.cesta.acervo.userbook.dto.UpdateUserBookRequest;
+import com.cesta.acervo.userbook.dto.UserBookDetailResponse;
 import com.cesta.acervo.userbook.dto.UserBookResponse;
 import com.cesta.acervo.userbook.entity.UserBook;
 import com.cesta.acervo.userbook.mapper.UserBookMapper;
@@ -37,7 +38,7 @@ public class UserBookService {
     }
 
     @Transactional
-    public UserBookResponse add(Long userId, Long bookId) {
+    public UserBookResponse add(Long userId, Long bookId, AddUserBookRequest request) {
         User user = userService.getById(userId);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado"));
@@ -49,7 +50,7 @@ public class UserBookService {
         UserBook userBook = UserBook.builder()
                 .user(user)
                 .book(book)
-                .statusReading(StatusReading.WANT_READ)
+                .statusReading(request.statusReading())
                 .addedAt(Instant.now())
                 .favorite(false)
                 .build();
@@ -86,6 +87,14 @@ public class UserBookService {
         }
 
         return userBookMapper.toResponse(userBook);
+    }
+
+    @Transactional(readOnly = true)
+    public UserBookDetailResponse getDetail(Long userId, Long bookId) {
+        userService.getById(userId);
+        UserBook userBook = userBookRepository.findDetailByUserIdAndBookId(userId, bookId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado no acervo"));
+        return userBookMapper.toDetailResponse(userBook);
     }
 
     @Transactional(readOnly = true)

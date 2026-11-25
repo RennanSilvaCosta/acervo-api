@@ -1,6 +1,6 @@
 package com.cesta.acervo.userbook.dto;
 
-import com.cesta.acervo.book.enums.StatusReading;
+import com.cesta.acervo.userbook.enums.StatusReading;
 
 import java.time.Instant;
 import java.time.LocalDate;

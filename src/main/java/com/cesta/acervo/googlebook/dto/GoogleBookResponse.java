@@ -29,6 +29,7 @@ public class GoogleBookResponse {
         private String publishedDate;
         private String description;
         private Integer pageCount;
+        private String language;
         private List<Identifier> industryIdentifiers;
     }
 

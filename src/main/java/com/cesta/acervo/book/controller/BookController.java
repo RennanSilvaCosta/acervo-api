@@ -21,7 +21,7 @@ public class BookController {
     }
 
     @PostMapping("/isbn/{isbn}")
-    public BookResponseDto createBookByIsbn(@PathVariable @ISBN String isbn) {
+    public BookResponseDto createBookByIsbn(@PathVariable @ISBN(type = ISBN.Type.ANY) String isbn) {
         return bookService.createByIsbn(isbn);
     }
 

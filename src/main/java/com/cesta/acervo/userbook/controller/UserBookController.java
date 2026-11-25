@@ -1,6 +1,8 @@
 package com.cesta.acervo.userbook.controller;
 
+import com.cesta.acervo.userbook.dto.AddUserBookRequest;
 import com.cesta.acervo.userbook.dto.UpdateUserBookRequest;
+import com.cesta.acervo.userbook.dto.UserBookDetailResponse;
 import com.cesta.acervo.userbook.dto.UserBookResponse;
 import com.cesta.acervo.userbook.service.UserBookService;
 import jakarta.validation.Valid;
@@ -30,8 +32,15 @@ public class UserBookController {
 
     @PostMapping("/{bookId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserBookResponse add(@PathVariable Long userId, @PathVariable Long bookId) {
-        return userBookService.add(userId, bookId);
+    public UserBookResponse add(@PathVariable Long userId,
+                                @PathVariable Long bookId,
+                                @Valid @RequestBody AddUserBookRequest request) {
+        return userBookService.add(userId, bookId, request);
+    }
+
+    @GetMapping("/{bookId}")
+    public UserBookDetailResponse detail(@PathVariable Long userId, @PathVariable Long bookId) {
+        return userBookService.getDetail(userId, bookId);
     }
 
     @PatchMapping("/{bookId}")

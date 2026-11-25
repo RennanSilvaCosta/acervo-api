@@ -55,7 +55,8 @@ public class BookService {
 
     @Transactional
     public BookResponseDto createByIsbn(String isbn) {
-        var isbnNormalize = isbn.replaceAll("[^0-9]", "");
+        // Mantem o "X", digito verificador valido do ISBN-10
+        var isbnNormalize = isbn.replaceAll("[^0-9Xx]", "").toUpperCase();
         var dbBook = this.bookRepository.findByIsbnCode(
                 isbnNormalize,
                 List.of(IdentifyTypeEnum.ISBN, IdentifyTypeEnum.ISBN_13)
