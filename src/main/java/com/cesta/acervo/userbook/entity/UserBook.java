@@ -1,7 +1,7 @@
 package com.cesta.acervo.userbook.entity;
 
 import com.cesta.acervo.book.entity.Book;
-import com.cesta.acervo.book.enums.StatusReading;
+import com.cesta.acervo.userbook.enums.StatusReading;
 import com.cesta.acervo.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

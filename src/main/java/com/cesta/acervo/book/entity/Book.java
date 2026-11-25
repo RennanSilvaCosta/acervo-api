@@ -57,4 +57,8 @@ public class Book {
     @Column(name = "BOOK_PAGE_COUNT")
     private Integer pageCount;
 
+    /** Codigo ISO 639-1 do idioma (ex.: "pt", "en"), quando a fonte informa. */
+    @Column(name = "BOOK_LANGUAGE", length = 10)
+    private String language;
+
 }

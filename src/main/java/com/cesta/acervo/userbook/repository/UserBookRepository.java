@@ -22,6 +22,19 @@ public interface UserBookRepository extends JpaRepository<UserBook, Long> {
     Optional<UserBook> findByUserIdAndBookId(@Param("userId") Long userId, @Param("bookId") Long bookId);
 
     @Query("""
+            SELECT DISTINCT ub FROM TB_USER_BOOK ub
+            JOIN FETCH ub.user
+            JOIN FETCH ub.book b
+            LEFT JOIN FETCH b.cover
+            LEFT JOIN FETCH b.authors
+            LEFT JOIN FETCH b.publishers
+            LEFT JOIN FETCH b.bookIdentifications
+            WHERE ub.user.id = :userId
+              AND b.id = :bookId
+            """)
+    Optional<UserBook> findDetailByUserIdAndBookId(@Param("userId") Long userId, @Param("bookId") Long bookId);
+
+    @Query("""
             SELECT ub FROM TB_USER_BOOK ub
             JOIN FETCH ub.book
             WHERE ub.user.id = :userId
